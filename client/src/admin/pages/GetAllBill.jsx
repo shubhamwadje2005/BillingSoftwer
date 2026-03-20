@@ -434,7 +434,7 @@ const GetAllBill = () => {
 
     return (
         <>
-            <div className="p-2 sm:p-4 bg-gray-50 min-h-screen">
+            <div className="p-2 sm:p-4 bg-gray-50 h-full">
                 <div className="max-w-7xl mx-auto bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
 
                     {/* Table Header */}

@@ -60,7 +60,7 @@ const AddProduct = () => {
     }, [isError])
 
     return <>
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="flex items-center justify-center h-full bg-gray-100 p-4">
             <div className="w-full max-w-lg bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200">
 
                 {/* Form Header */}

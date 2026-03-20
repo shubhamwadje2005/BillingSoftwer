@@ -47,7 +47,7 @@ const ViewBill = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex justify-center p-4">
+        <div className="h-full bg-gray-100 flex justify-center p-4">
             <div className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden">
 
                 {/* Header */}
