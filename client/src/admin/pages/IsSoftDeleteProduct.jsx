@@ -46,7 +46,7 @@ const IsSoftDeleteProduct = () => {
                 </div>
 
                 {/* Table Container */}
-                <div className="overflow-auto max-h-[60vh]">
+                <div className="overflow-auto max-h-[60vh] pb-10">
                     <table className="w-full text-left border-collapse min-w-[700px] sm:min-w-full">
                         <thead className="sticky top-0 z-10 bg-slate-100">
                             <tr className="border-b border-gray-300">
