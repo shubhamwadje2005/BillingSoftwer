@@ -80,36 +80,35 @@ const SecretaryDashboard = () => {
 
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex min-h-screen bg-gray-100 overflow-x-hidden">
 
+            {/* Mobile Overlay */}
+            {open && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity" 
+                    onClick={() => setOpen(false)} 
+                />
+            )}
+
+            {/* Sidebar */}
             <aside
                 className={`
-    fixed top-0 left-0 h-screen bg-slate-900 text-white z-40
-    transition-all duration-300
-    sm:w-20
-    ${open ? "lg:w-64" : "lg:w-20"}
-    hidden sm:flex flex-col
-  `}
+                    fixed top-0 left-0 h-screen bg-slate-900 text-white z-40
+                    transition-all duration-300 flex flex-col
+                    ${open ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0 lg:w-20"}
+                `}
             >
-                {/* <pre>{JSON.stringify(user, null, 2)}</pre> */}
-
-                <div className="flex items-center justify-center lg:justify-start gap-3 p-4 border-b border-slate-700">
-
-
+                <div className={`flex items-center justify-center lg:justify-start gap-3 p-4 border-b border-slate-700 ${!open && "lg:justify-center"}`}>
                     <img
                         src={user?.result?.shopImages || "/default-user.png"}
                         alt="Profile"
-                        className="w-12 h-12 rounded-full object-cover object-top border-2 border-white"
+                        className="w-12 h-12 rounded-full object-cover object-top border-2 border-white flex-shrink-0"
                     />
-
-                    {open && (
-                        <div className="hidden lg:block">
-                            <h1 className="text-lg font-semibold">
-                                {/* {user?.result?.name || "No Name"} */}
-                                {user?.result?.branchName || "No Name"}
-                            </h1>
-                        </div>
-                    )}
+                    <div className={`overflow-hidden transition-all duration-300 ${open ? "w-auto opacity-100" : "w-0 opacity-0"}`}>
+                        <h1 className="text-lg font-semibold whitespace-nowrap">
+                            {user?.result?.branchName || "No Name"}
+                        </h1>
+                    </div>
                 </div>
 
                 <nav className="px-2 my-5 space-y-2 overflow-y-auto scrollbar-hide flex-1">
@@ -121,67 +120,67 @@ const SecretaryDashboard = () => {
                             <Link
                                 key={i}
                                 to={item.path}
+                                onClick={() => window.innerWidth < 1024 && setOpen(false)}
                                 className={`
-    group flex items-center gap-4 px-4 py-3 rounded-xl
-    transition-all duration-200
-    ${active
+                                    group flex items-center gap-4 px-4 py-3 rounded-xl
+                                    transition-all duration-200
+                                    ${active
                                         ? "bg-amber-500 text-slate-900 shadow-md"
                                         : "text-slate-300 hover:bg-slate-800 hover:text-white"
                                     }
-    justify-center lg:justify-start
-  `}
+                                    ${!open && "lg:justify-center"}
+                                `}
+                                title={item.label}
                             >
-
-                                <Icon size={22} />
-                                {open && <span className="hidden lg:inline">{item.label}</span>}
+                                <Icon size={22} className="min-w-[22px]" />
+                                <span className={`whitespace-nowrap transition-all duration-300 ${open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden lg:hidden"}`}>
+                                    {item.label}
+                                </span>
                             </Link>
                         );
                     })}
                 </nav>
-
             </aside>
 
+            {/* Main Content */}
             <main
                 className={`
-                    flex-1 transition-all duration-300
-                    sm:ml-20              /* Tablet margin */
-                    ${open ? "lg:ml-64" : "lg:ml-20"}   /* Laptop margin */
+                    flex-1 flex flex-col min-h-screen min-w-0
+                    transition-all duration-300
+                    ${open ? "lg:ml-64" : "lg:ml-20"}
                 `}
             >
-                <header className="p-4 bg-white shadow flex items-center justify-between sticky top-0 z-50">
-
-
-                    {/* LEFT SIDE — Toggle + Title */}
+                {/* Header */}
+                <header className="p-4 bg-white shadow flex items-center justify-between sticky top-0 z-20">
                     <div className="flex items-center gap-3">
-                        <div className="hidden lg:block">
+                        <div className="block cursor-pointer">
                             {open ? (
-                                <X size={28} className="cursor-pointer" onClick={() => setOpen(false)} />
+                                <X size={28} onClick={() => setOpen(false)} />
                             ) : (
-                                <Menu size={28} className="cursor-pointer" onClick={() => setOpen(true)} />
+                                <Menu size={28} onClick={() => setOpen(true)} />
                             )}
                         </div>
 
-                        <h2 className="text-lg font-semibold text-slate-900">
+                        <h2 className="text-lg sm:text-xl font-semibold text-slate-900 truncate">
                             {getPageTitle()}
                         </h2>
-
                     </div>
 
                     <button
                         onClick={() => UserLogout()}
-                        className="border-2 border-red-500 text-slate-900 px-4 py-2 rounded-md
-             hover:bg-red-700 transition font-semibold"
+                        className="border-2 border-red-500 text-red-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md
+                                 hover:bg-red-600 hover:text-white transition font-semibold text-sm sm:text-base mx-2"
                     >
                         Logout
                     </button>
-
-
                 </header>
 
-                <div className="p-6 flex-1">
+                {/* Page Content */}
+                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-x-hidden">
                     <Outlet />
                 </div>
             </main>
+
         </div>
     );
 };

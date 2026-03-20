@@ -21,7 +21,7 @@ const ViewBill = () => {
     const handleDownloadPDF = async (billId) => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/bills/bill/downloadbill/${billId}`,
+                `https://billing-softwer-server.vercel.app/api/bills/bill/downloadbill/${billId}`,
                 {
                     responseType: "blob",
                     withCredentials: true,
