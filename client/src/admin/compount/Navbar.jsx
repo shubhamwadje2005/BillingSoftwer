@@ -80,7 +80,7 @@ const SecretaryDashboard = () => {
 
 
     return (
-        <div className="flex min-h-screen bg-gray-100 overflow-x-hidden">
+        <div className="flex h-screen bg-gray-100 overflow-hidden">
 
             {/* Mobile Overlay */}
             {open && (
@@ -145,13 +145,13 @@ const SecretaryDashboard = () => {
             {/* Main Content */}
             <main
                 className={`
-                    flex-1 flex flex-col min-h-screen min-w-0
+                    flex-1 flex flex-col h-screen min-w-0
                     transition-all duration-300
                     ${open ? "lg:ml-64" : "lg:ml-20"}
                 `}
             >
                 {/* Header */}
-                <header className="p-4 bg-white shadow flex items-center justify-between sticky top-0 z-20">
+                <header className="p-4 bg-white shadow flex items-center justify-between z-20 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="block cursor-pointer">
                             {open ? (
@@ -176,7 +176,7 @@ const SecretaryDashboard = () => {
                 </header>
 
                 {/* Page Content */}
-                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-x-hidden">
+                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-y-auto overflow-x-hidden">
                     <Outlet />
                 </div>
             </main>
