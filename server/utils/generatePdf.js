@@ -98,150 +98,156 @@ const PDFDocument = require("pdfkit");
 const axios = require("axios");
 
 const generateBillPDF = async (bill, res) => {
-    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    return new Promise(async (resolve, reject) => {
+        try {
+            const doc = new PDFDocument({ size: "A4", margin: 40 });
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=${bill.companyName || "bill"}.pdf`
-    );
-
-    doc.pipe(res);
-
-    try {
-        /* ================= HEADER ================= */
-        doc.rect(0, 0, 595, 120).fill("#1f2937");
-
-        doc
-            .fillColor("#ffffff")
-            .font("Helvetica-Bold")
-            .fontSize(24)
-            .text(bill.companyName || "shubhagi inter prijes", 0, 40, {
-                align: "center",
-            });
-
-        doc
-            .fillColor("#cbd5e1")
-            .fontSize(12)
-            .text(bill.companycontact || "9658485968", 0, 75, {
-                align: "center",
-            });
-
-        let y = 150;
-
-        /* ================= PRODUCT TYPE ================= */
-        doc.roundedRect(50, y, 495, 70, 16).fill("#e0edff");
-
-        doc
-            .fillColor("#2563eb")
-            .fontSize(12)
-            .font("Helvetica-Bold")
-            .text("Product Type", 80, y + 18);
-
-        doc
-            .fillColor("#1e40af")
-            .fontSize(18)
-            .text(bill.productType || "cloth", 80, y + 40);
-
-        y += 95;
-
-        /* ================= TOTAL AMOUNT ================= */
-        doc.roundedRect(50, y, 495, 70, 16).fill("#dcfce7");
-
-        doc
-            .fillColor("#15803d")
-            .fontSize(12)
-            .font("Helvetica-Bold")
-            .text("Total Amount", 80, y + 18);
-
-        doc
-            .fillColor("#166534")
-            .fontSize(20)
-            .font("Helvetica-Bold")
-            .text(`Rs. ${bill.allProducttotalamout || "54000"}`, 80, y + 40);
-
-        y += 110;
-
-        /* ================= IMAGES TITLE ================= */
-        doc
-            .fillColor("#111827")
-            .fontSize(14)
-            .font("Helvetica-Bold")
-            .text("Bill Images", 50, y);
-
-        y += 25;
-
-        /* ================= IMAGES GRID ================= */
-        let imgX = 50;
-        const imgSize = 130;
-        const gap = 20;
-
-        if (Array.isArray(bill.billphoto)) {
-            for (let i = 0; i < bill.billphoto.length; i++) {
-                if (imgX + imgSize > 545) {
-                    imgX = 50;
-                    y += imgSize + gap;
-                }
-
-                if (y + imgSize > 760) {
-                    doc.addPage();
-                    y = 50;
-                    imgX = 50;
-                }
-
-                try {
-                    const response = await axios.get(bill.billphoto[i], {
-                        responseType: "arraybuffer",
-                    });
-
-                    const buffer = Buffer.from(response.data);
-
-                    /* ---- IMAGE COVER INSIDE BOX ---- */
-                    doc.save();
-                    doc.roundedRect(imgX, y, imgSize, imgSize, 18).clip();
-
-                    doc.image(buffer, imgX, y, {
-                        width: imgSize,
-                        height: imgSize,
-                    });
-
-                    doc.restore();
-
-                    /* ---- BORDER ---- */
-                    doc
-                        .roundedRect(imgX, y, imgSize, imgSize, 18)
-                        .lineWidth(0.8)
-                        .strokeColor("#d1d5db")
-                        .stroke();
-                } catch (err) {
-                    /* ---- NO IMAGE BOX ---- */
-                    doc.roundedRect(imgX, y, imgSize, imgSize, 18).fill("#f3f4f6");
-
-                    doc
-                        .fillColor("#9ca3af")
-                        .fontSize(10)
-                        .text("No Image", imgX + 35, y + 60);
-                }
-
-                imgX += imgSize + gap;
-            }
-        }
-
-        /* ================= FOOTER ================= */
-        doc
-            .fillColor("#9ca3af")
-            .fontSize(10)
-            .text(
-                "Generated via Billing System",
-                0,
-                doc.page.height - 45,
-                { align: "center" }
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename=${bill.companyName || "bill"}.pdf`
             );
-    } catch (err) {
-        console.error("PDF ERROR:", err);
-    }
 
-    doc.end();
+            doc.pipe(res);
+
+            res.on('finish', () => resolve());
+            res.on('error', reject);
+
+            /* ================= HEADER ================= */
+            doc.rect(0, 0, 595, 120).fill("#1f2937");
+
+            doc
+                .fillColor("#ffffff")
+                .font("Helvetica-Bold")
+                .fontSize(24)
+                .text(bill.companyName || "shubhagi inter prijes", 0, 40, {
+                    align: "center",
+                });
+
+            doc
+                .fillColor("#cbd5e1")
+                .fontSize(12)
+                .text(bill.companycontact || "9658485968", 0, 75, {
+                    align: "center",
+                });
+
+            let y = 150;
+
+            /* ================= PRODUCT TYPE ================= */
+            doc.roundedRect(50, y, 495, 70, 16).fill("#e0edff");
+
+            doc
+                .fillColor("#2563eb")
+                .fontSize(12)
+                .font("Helvetica-Bold")
+                .text("Product Type", 80, y + 18);
+
+            doc
+                .fillColor("#1e40af")
+                .fontSize(18)
+                .text(bill.productType || "cloth", 80, y + 40);
+
+            y += 95;
+
+            /* ================= TOTAL AMOUNT ================= */
+            doc.roundedRect(50, y, 495, 70, 16).fill("#dcfce7");
+
+            doc
+                .fillColor("#15803d")
+                .fontSize(12)
+                .font("Helvetica-Bold")
+                .text("Total Amount", 80, y + 18);
+
+            doc
+                .fillColor("#166534")
+                .fontSize(20)
+                .font("Helvetica-Bold")
+                .text(`Rs. ${bill.allProducttotalamout || "54000"}`, 80, y + 40);
+
+            y += 110;
+
+            /* ================= IMAGES TITLE ================= */
+            doc
+                .fillColor("#111827")
+                .fontSize(14)
+                .font("Helvetica-Bold")
+                .text("Bill Images", 50, y);
+
+            y += 25;
+
+            /* ================= IMAGES GRID ================= */
+            let imgX = 50;
+            const imgSize = 130;
+            const gap = 20;
+
+            if (Array.isArray(bill.billphoto)) {
+                for (let i = 0; i < bill.billphoto.length; i++) {
+                    if (imgX + imgSize > 545) {
+                        imgX = 50;
+                        y += imgSize + gap;
+                    }
+
+                    if (y + imgSize > 760) {
+                        doc.addPage();
+                        y = 50;
+                        imgX = 50;
+                    }
+
+                    try {
+                        const response = await axios.get(bill.billphoto[i], {
+                            responseType: "arraybuffer",
+                        });
+
+                        const buffer = Buffer.from(response.data);
+
+                        /* ---- IMAGE COVER INSIDE BOX ---- */
+                        doc.save();
+                        doc.roundedRect(imgX, y, imgSize, imgSize, 18).clip();
+
+                        doc.image(buffer, imgX, y, {
+                            width: imgSize,
+                            height: imgSize,
+                        });
+
+                        doc.restore();
+
+                        /* ---- BORDER ---- */
+                        doc
+                            .roundedRect(imgX, y, imgSize, imgSize, 18)
+                            .lineWidth(0.8)
+                            .strokeColor("#d1d5db")
+                            .stroke();
+                    } catch (err) {
+                        /* ---- NO IMAGE BOX ---- */
+                        doc.roundedRect(imgX, y, imgSize, imgSize, 18).fill("#f3f4f6");
+
+                        doc
+                            .fillColor("#9ca3af")
+                            .fontSize(10)
+                            .text("No Image", imgX + 35, y + 60);
+                    }
+
+                    imgX += imgSize + gap;
+                }
+            }
+
+            /* ================= FOOTER ================= */
+            doc
+                .fillColor("#9ca3af")
+                .fontSize(10)
+                .text(
+                    "Generated via Billing System",
+                    0,
+                    doc.page.height - 45,
+                    { align: "center" }
+                );
+
+            doc.end();
+        } catch (err) {
+            console.error("PDF ERROR:", err);
+            reject(err);
+        }
+    });
 };
 
 module.exports = generateBillPDF;
