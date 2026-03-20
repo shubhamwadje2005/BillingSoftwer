@@ -76,10 +76,10 @@ const GetProduct = () => {
                 </div>
 
                 {/* Table Container */}
-                <div className="overflow-x-auto">
+                <div className="overflow-auto max-h-[60vh]">
                     <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-100 border-b border-gray-300">
+                        <thead className="sticky top-0 z-10 bg-slate-100">
+                            <tr className="border-b border-gray-300">
                                 <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Company Details</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Product Type</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Total Amount</th>
