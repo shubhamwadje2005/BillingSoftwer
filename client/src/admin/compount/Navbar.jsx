@@ -176,10 +176,8 @@ const SecretaryDashboard = () => {
                 </header>
 
                 {/* Page Content */}
-                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-y-auto overflow-x-hidden bg-white">
+                <div className="p-2 sm:p-6 pb-24 flex-1 w-full max-w-full overflow-y-auto overflow-x-hidden bg-white">
                     <Outlet />
-                    {/* Add extra space at bottom for better scrolling experience */}
-                    <div className="h-24 sm:h-32 w-full" />
                 </div>
             </main>
 
