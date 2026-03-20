@@ -80,7 +80,7 @@ const SecretaryDashboard = () => {
 
 
     return (
-        <div className="flex h-screen bg-gray-100 overflow-hidden">
+        <div className="flex h-screen bg-white overflow-hidden">
 
             {/* Mobile Overlay */}
             {open && (
@@ -176,7 +176,7 @@ const SecretaryDashboard = () => {
                 </header>
 
                 {/* Page Content */}
-                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-y-auto overflow-x-hidden">
+                <div className="p-2 sm:p-6 flex-1 w-full max-w-full overflow-y-auto overflow-x-hidden bg-white">
                     <Outlet />
                 </div>
             </main>

@@ -218,7 +218,7 @@ const ProfessionalAdminProfile = ({ userData, onUpdate }) => {
 
 
     return (
-        <div className="h-full bg-[#fcfcfd] p-6 lg:p-12 font-sans text-slate-900">
+        <div className="h-full bg-white p-6 lg:p-12 font-sans text-slate-900">
             <div className="max-w-5xl mx-auto">
                 <input
                     type="file"

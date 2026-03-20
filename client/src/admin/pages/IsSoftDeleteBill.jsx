@@ -33,7 +33,7 @@ const IsSoftDeleteBill = () => {
     }, [isError])
 
     return <>
-        <div className="p-4 bg-gray-50 h-full">
+        <div className="p-4 bg-white h-full">
             <div className="max-w-7xl mx-auto bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
 
                 {/* Table Header Section */}
