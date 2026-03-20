@@ -341,12 +341,14 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
     const month = Number(req.query.month) || new Date().getMonth() + 1;
     const day = Number(req.query.day) || new Date().getDate();
 
+    const userId = new mongoose.Types.ObjectId(req.user);
+
     // Helper function to get last day of month
     const getLastDayOfMonth = (y, m) => new Date(y, m, 0); // month 1-indexed
 
     // Overall Total Income
     const overall = await Bills.aggregate([
-        { $match: { isDeleted: false } },
+        { $match: { isDeleted: false, createdBy: userId } },
         { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
     ]);
 
@@ -355,6 +357,7 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
         {
             $match: {
                 isDeleted: false,
+                createdBy: userId,
                 date: {
                     $gte: new Date(`${year}-01-01T00:00:00.000Z`),
                     $lte: new Date(`${year}-12-31T23:59:59.999Z`)
@@ -373,6 +376,7 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
         {
             $match: {
                 isDeleted: false,
+                createdBy: userId,
                 date: {
                     $gte: monthStart,
                     $lte: monthEnd
@@ -390,6 +394,7 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
         {
             $match: {
                 isDeleted: false,
+                createdBy: userId,
                 date: {
                     $gte: dayStart,
                     $lte: dayEnd
@@ -400,10 +405,10 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
     ]);
 
     // Total Bills Count
-    const totalBills = await Bills.countDocuments({ isDeleted: false });
+    const totalBills = await Bills.countDocuments({ isDeleted: false, createdBy: userId });
 
     // Recent Bills (latest 5)
-    const recentBills = await Bills.find({ isDeleted: false })
+    const recentBills = await Bills.find({ isDeleted: false, createdBy: userId })
         .sort({ createdAt: -1 })
         .limit(5)
         .select("customerName customerPhone totalAmount paymentMethod date");
