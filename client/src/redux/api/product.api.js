@@ -5,7 +5,8 @@ export const productApi = createApi({
     reducerPath: "productApi",
     // baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5000/api/productbill", credentials: 'include' }),
     baseQuery: createAutoLogoutBaseQuery({
-        baseUrl: "http://localhost:5000/api/productbill",
+        // baseUrl: "http://localhost:5000/api/productbill",
+        baseUrl: "https://billing-softwer-server.vercel.app/api/productbill",
         redirectPath: "/login"
     }),
     tagTypes: ["product"],

@@ -8,7 +8,8 @@ require("dotenv").config()
 const app = express()
 
 app.use(express.json())
-app.use(cros({ origin: "http://localhost:5173", credentials: true }))
+// app.use(cros({ origin: "http://localhost:5173", credentials: true }))
+app.use(cros({ origin: "https://billing-softwer-client.vercel.app", credentials: true }))
 app.use(cookieParser())
 
 
