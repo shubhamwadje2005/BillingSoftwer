@@ -89,7 +89,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
     }
     const token = jwt.sign({ _id: result._id, name: result.name }, process.env.JWT_KEY)
 
-    res.cookie("USER", token, { maxAge: 1000 * 60 * 60 * 24, httpOnly: true, secure: true })
+    res.cookie("USER", token, { maxAge: 1000 * 60 * 60 * 24, httpOnly: true })
     res.json({
         message: "User Login Success", result: {
             _id: result._id,
