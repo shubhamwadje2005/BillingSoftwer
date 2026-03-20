@@ -175,7 +175,7 @@ const DashboardHome = () => {
     const days = Array.from({ length: 31 }, (_, i) => i + 1); // 1–31
 
     return (
-        <div className="h-full bg-white p-4 lg:p-10 font-sans text-slate-800">
+        <div className="min-h-full bg-white p-4 lg:p-10 font-sans text-slate-800">
             <div className="max-w-6xl mx-auto">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
