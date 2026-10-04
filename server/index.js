@@ -8,14 +8,28 @@ require("dotenv").config()
 const app = express()
 
 app.use(express.json())
-// app.use(cros({ origin: "http://localhost:5173", credentials: true }))
-app.use(cros({ origin: "https://billing-softwer-client.vercel.app", credentials: true }))
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://billing-softwer-client.vercel.app"
+]
+app.use(cros({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("vercel.app")) {
+            callback(null, true)
+        } else {
+            callback(null, true)
+        }
+    },
+    credentials: true
+}))
 app.use(cookieParser())
 
 
 app.use("/api/auth", require("./routes/auth.route"))
 app.use("/api/bills", userProtected, require("./routes/Bill.route"))
 app.use("/api/productbill", ProductBill, require("./routes/ProductBill.route"))
+app.use("/api/products", userProtected, require("./routes/product.route"))
 
 
 // app.use("*", (req, res) => {

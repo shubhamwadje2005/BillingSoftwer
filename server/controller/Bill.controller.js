@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Bills = require("../models/Bills");
+const Product = require("../models/Product");
 const { default: mongoose } = require("mongoose");
 const CustomergeneratePdf = require("../utils/CustomergeneratePdf");
 
@@ -59,6 +60,32 @@ exports.addbillProduct = asyncHandler(async (req, res) => {
         paymentMethod,
         createdBy: req.user,
     });
+
+    // Automatically decrement stock for matched products in inventory
+    try {
+        for (const item of items) {
+            const qty = Number(item.quantity) || 0;
+            if (qty > 0) {
+                if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
+                    await Product.findByIdAndUpdate(item.productId, {
+                        $inc: { currentStock: -qty, totalSold: qty }
+                    });
+                } else if (item.productName) {
+                    await Product.findOneAndUpdate(
+                        {
+                            adminId: req.user,
+                            itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
+                        },
+                        {
+                            $inc: { currentStock: -qty, totalSold: qty }
+                        }
+                    );
+                }
+            }
+        }
+    } catch (stockErr) {
+        console.error("Stock update error:", stockErr.message);
+    }
 
     res.status(201).json({ message: "Bill Added Successfully", bill });
 });
@@ -198,38 +225,91 @@ exports.deleteBillProduct = asyncHandler(async (req, res) => {
     bill.isDeleted = true;
     await bill.save();
 
-    res.json({ message: "Bill Deleted Successfully" })
-})
+    // Restore stock back to products
+    try {
+        if (bill.items && bill.items.length > 0) {
+            for (const item of bill.items) {
+                const qty = Number(item.quantity) || 0;
+                if (qty > 0) {
+                    if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
+                        await Product.findByIdAndUpdate(item.productId, {
+                            $inc: { currentStock: qty, totalSold: -qty }
+                        });
+                    } else if (item.productName) {
+                        await Product.findOneAndUpdate(
+                            {
+                                adminId: req.user,
+                                itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
+                            },
+                            {
+                                $inc: { currentStock: qty, totalSold: -qty }
+                            }
+                        );
+                    }
+                }
+            }
+        }
+    } catch (stockErr) {
+        console.error("Stock restore error on delete:", stockErr.message);
+    }
+
+    res.json({ message: "Bill Deleted Successfully" });
+});
 
 exports.getPagination = asyncHandler(async (req, res) => {
-    const { start, limit } = req.query
+    const { start, limit } = req.query;
 
-    const total = await Bills.countDocuments({ isDeleted: false, createdBy: req.user })
+    const total = await Bills.countDocuments({ isDeleted: false, createdBy: req.user });
 
     const result = await Bills.find({ isDeleted: false, createdBy: req.user })
         .skip(start)
-        .limit(limit)
+        .limit(limit);
 
-    res.json({ message: "Pagination Fetch Successfully", result, total })
-
-})
+    res.json({ message: "Pagination Fetch Successfully", result, total });
+});
 
 exports.restoreBillProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const bill = await Bills.findOne({ _id: id, isDeleted: true, createdBy: req.user, })
+    const bill = await Bills.findOne({ _id: id, isDeleted: true, createdBy: req.user });
 
     if (!bill) {
-        return res.status(400).json({ message: "Deleted bill not found" })
+        return res.status(400).json({ message: "Deleted bill not found" });
     }
 
     bill.isDeleted = false;
+    await bill.save();
 
-    await bill.save()
+    // Re-decrement stock when bill is restored
+    try {
+        if (bill.items && bill.items.length > 0) {
+            for (const item of bill.items) {
+                const qty = Number(item.quantity) || 0;
+                if (qty > 0) {
+                    if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
+                        await Product.findByIdAndUpdate(item.productId, {
+                            $inc: { currentStock: -qty, totalSold: qty }
+                        });
+                    } else if (item.productName) {
+                        await Product.findOneAndUpdate(
+                            {
+                                adminId: req.user,
+                                itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
+                            },
+                            {
+                                $inc: { currentStock: -qty, totalSold: qty }
+                            }
+                        );
+                    }
+                }
+            }
+        }
+    } catch (stockErr) {
+        console.error("Stock decrement error on restore:", stockErr.message);
+    }
 
-    res.json({ message: "Bill restored Successfully" })
-
-})
+    res.json({ message: "Bill restored Successfully" });
+});
 
 exports.getDeleteBillProducts = asyncHandler(async (req, res) => {
     const { start, limit } = req.query

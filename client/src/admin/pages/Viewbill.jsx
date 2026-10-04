@@ -86,9 +86,7 @@ const ViewBill = () => {
                                 <div>
                                     <p className="font-medium capitalize">{item.productName || "N/A"}</p>
                                     <p className="text-xs text-gray-500">
-                                        Qty: {item.quantity != null ? item.quantity : "N/A"} |
-                                        Size: {item.size ? item.size : "N/A"} |
-                                        Color: {item.color ? item.color : "N/A"}
+                                        Qty: {item.quantity != null ? item.quantity : 1}
                                     </p>
                                 </div>
 

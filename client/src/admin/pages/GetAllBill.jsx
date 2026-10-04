@@ -467,7 +467,6 @@ const GetAllBill = () => {
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider">Product Details</th>
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Qty</th>
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Price</th>
-                                    <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Specs</th>
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Totals</th>
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Payment</th>
                                     <th className="px-2 sm:px-4 py-3 text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Actions</th>
@@ -502,17 +501,6 @@ const GetAllBill = () => {
                                                 ₹{bill.items[0]?.price}
                                             </td>
 
-                                            {/* Size & Color */}
-                                            <td className="px-2 sm:px-4 py-3 text-center">
-                                                <div className="flex flex-col gap-0.5 sm:gap-1 items-center">
-                                                    <span className="text-[10px] sm:text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 px-2 rounded uppercase">
-                                                        Size: {bill.items[0]?.size || 'N/A'}
-                                                    </span>
-                                                    <span className="text-[10px] sm:text-xs font-bold bg-purple-50 text-purple-600 border border-purple-100 px-2 rounded uppercase">
-                                                        Color: {bill.items[0]?.color || 'N/A'}
-                                                    </span>
-                                                </div>
-                                            </td>
 
                                             {/* Totals */}
                                             <td className="px-2 sm:px-4 py-3 text-center">

@@ -6,6 +6,7 @@ module.exports = mongoose.model("bill", new mongoose.Schema({
     customerPhone: { type: String, required: false, },
     items: [
         {
+            productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: false },
             productName: { type: String, required: true },
             quantity: { type: Number, required: true },
             price: { type: Number, required: true },

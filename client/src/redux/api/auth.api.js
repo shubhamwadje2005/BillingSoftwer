@@ -1,11 +1,19 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
+import { createApi } from "@reduxjs/toolkit/query/react"
 import { createAutoLogoutBaseQuery } from "../createAutoLogoutBaseQuery"
+
+const getBaseServer = () => {
+    if (typeof window !== "undefined") {
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.port === "5173" || window.location.hostname.startsWith("192.168.")) {
+            return "http://localhost:5000";
+        }
+    }
+    return import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+};
 
 export const authApi = createApi({
     reducerPath: "authApi",
-    // baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5000/api/auth", credentials: "include" }),
     baseQuery: createAutoLogoutBaseQuery({
-        baseUrl: "https://billing-softwer-server.vercel.app/api/auth",
+        baseUrl: `${getBaseServer()}/api/auth`,
         redirectPath: "/login"
     }),
     tagTypes: ["auth"],
