@@ -89,6 +89,8 @@ exports.addProduct = asyncHandler(async (req, res) => {
     });
 });
 
+const escapeRegex = (str) => String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // Get all active products for the user (supports search, filter, pagination, or all)
 exports.getAllProducts = asyncHandler(async (req, res) => {
     const { search, category, productType, start, limit, all } = req.query;
@@ -106,12 +108,13 @@ exports.getAllProducts = asyncHandler(async (req, res) => {
         filter.productType = productType;
     }
 
-    if (search) {
+    if (search && search.trim()) {
+        const safeSearch = escapeRegex(search.trim());
         filter.$or = [
-            { itemName: { $regex: search, $options: "i" } },
-            { itemCode: { $regex: search, $options: "i" } },
-            { category: { $regex: search, $options: "i" } },
-            { companyName: { $regex: search, $options: "i" } },
+            { itemName: { $regex: safeSearch, $options: "i" } },
+            { itemCode: { $regex: safeSearch, $options: "i" } },
+            { category: { $regex: safeSearch, $options: "i" } },
+            { companyName: { $regex: safeSearch, $options: "i" } },
         ];
     }
 
@@ -161,25 +164,36 @@ exports.updateProduct = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    const product = await Product.findOne({
-        _id: id,
-        adminId: req.user,
-    });
+    const allowedFields = [
+        "itemName", "unit", "itemCode", "category", "hsnCode",
+        "salePrice", "salePriceTaxType", "discountOnSalePrice", "discountType",
+        "purchasePrice", "purchasePriceTaxType", "taxRate",
+        "openingStock", "currentStock", "asOfDate", "atPriceUnit",
+        "minStockQty", "itemLocation", "companyName", "companyContact", "productType"
+    ];
 
-    if (!product) {
-        return res.status(404).json({ message: "Product not found" });
+    const updates = {};
+    for (const key of allowedFields) {
+        if (req.body[key] !== undefined) {
+            updates[key] = req.body[key];
+        }
     }
 
-    const updates = { ...req.body };
     if (updates.salePrice !== undefined) updates.salePrice = Number(updates.salePrice);
     if (updates.purchasePrice !== undefined) updates.purchasePrice = Number(updates.purchasePrice);
     if (updates.currentStock !== undefined) updates.currentStock = Number(updates.currentStock);
     if (updates.openingStock !== undefined) updates.openingStock = Number(updates.openingStock);
+    if (updates.itemName) updates.itemName = updates.itemName.trim();
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
-        new: true,
-        runValidators: true,
-    });
+    const updatedProduct = await Product.findOneAndUpdate(
+        { _id: id, adminId: req.user },
+        { $set: updates },
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found or unauthorized" });
+    }
 
     res.json({
         message: "Product updated successfully",

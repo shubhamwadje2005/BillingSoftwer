@@ -125,4 +125,8 @@ const productSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Performance indexes for inventory catalog and tenant lookups
+productSchema.index({ adminId: 1, isSoftDeleted: 1, createdAt: -1 });
+productSchema.index({ adminId: 1, itemName: 1 });
+
 module.exports = mongoose.model("Product", productSchema);

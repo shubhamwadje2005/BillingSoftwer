@@ -25,9 +25,9 @@ const IsSoftDeleteProduct = () => {
 
     useEffect(() => {
         if (isError) {
-            toast.error(error.data.message || "restore productBill is Faild !")
+            toast.error(error?.data?.message || error?.error || "restore productBill is Failed !")
         }
-    }, [isError])
+    }, [isError, error])
 
 
     return <>

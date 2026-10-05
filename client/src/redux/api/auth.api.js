@@ -37,24 +37,19 @@ export const authApi = createApi({
                         body: userData
                     }
                 },
-                transformErrorResponse: data => {
-                    localStorage.setItem("user", JSON.stringify(data))
-                    return data
-                },
                 invalidatesTags: ["auth"]
             }),
 
             userLogout: builder.mutation({
-                query: userData => {
+                query: () => {
                     return {
                         url: "/logout",
                         method: "POST",
-                        // body: userData
                     }
                 },
-                transformErrorResponse: data => {
-                    localStorage.removeItem("user")
-                    return data.result
+                transformResponse: data => {
+                    localStorage.removeItem("user");
+                    return data?.result || data;
                 },
                 invalidatesTags: ["auth"]
             }),

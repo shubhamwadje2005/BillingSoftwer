@@ -582,9 +582,9 @@ const Login = () => {
 
     useEffect(() => {
         if (isError) {
-            toast.error(error.data.message || "user Login faild !")
+            toast.error(error?.data?.message || error?.error || "User login failed!")
         }
-    }, [isError])
+    }, [isError, error])
     return <>
         <LoginUI title="Login">
             <h2 className="text-3xl font-bold text-black mb-8 text-center">

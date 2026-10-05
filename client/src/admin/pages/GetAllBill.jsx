@@ -412,9 +412,9 @@ const GetAllBill = () => {
     }, [deleteIsSuccess])
     useEffect(() => {
         if (deleteIsError) {
-            toast.error(deleteError.data.message || "Bill Delete is Failed ! ")
+            toast.error(deleteError?.data?.message || deleteError?.error || "Bill Delete is Failed ! ")
         }
-    }, [deleteIsError])
+    }, [deleteIsError, deleteError])
 
 
     useEffect(() => {

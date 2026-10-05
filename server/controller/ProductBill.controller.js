@@ -164,9 +164,18 @@ exports.restoreallBill = asyncHandler(async (req, res) => {
 
 // pdf 
 exports.downloadBillPDF = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid Bill ID" });
+    }
 
-    const bill = await ProductBill.findById(req.params.id).lean();
-    if (!bill) return res.status(400).json({ message: "Bill not found" });
+    const bill = await ProductBill.findOne({
+        _id: id,
+        adminId: req.user,
+        isSoftDeleted: false
+    }).lean();
+
+    if (!bill) return res.status(404).json({ message: "Bill not found" });
 
     await generateBillPDF(bill, res);
 });

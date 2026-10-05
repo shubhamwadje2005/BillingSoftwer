@@ -28,9 +28,9 @@ const IsSoftDeleteBill = () => {
 
     useEffect(() => {
         if (isError) {
-            toast.error(error.data.message || "restore is Faild !")
+            toast.error(error?.data?.message || error?.error || "restore is Failed !")
         }
-    }, [isError])
+    }, [isError, error])
 
     return <>
         <div className="p-4 bg-white min-h-full">

@@ -12,6 +12,7 @@ const Register = () => {
     const [select, setSelect] = useState()
     const navigate = useNavigate()
     const [signup, { isLoading, isSuccess, isError, error }] = useUserRegisterMutation()
+
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
@@ -33,7 +34,7 @@ const Register = () => {
                 .required("Shop image is required"),
 
         }),
-        onSubmit: (values, { resetForm }) => {
+        onSubmit: (values) => {
             const formData = new FormData()
 
             formData.append("branchName", values.branchName)
@@ -44,11 +45,12 @@ const Register = () => {
             formData.append("shopImages", values.shopImages)
 
             signup(formData)
-            resetForm()
         }
     })
+
     useEffect(() => {
         if (isSuccess) {
+            formik.resetForm()
             navigate("/login")
             toast.success("User Register Success")
         }
@@ -56,9 +58,9 @@ const Register = () => {
 
     useEffect(() => {
         if (isError) {
-            toast.error(error.data.message || "User Register Faild !")
+            toast.error(error?.data?.message || error?.error || "User Register Failed !")
         }
-    }, [isError])
+    }, [isError, error])
 
     return (
         <LoginUI title="Register">

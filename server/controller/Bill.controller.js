@@ -24,6 +24,8 @@ const CustomergeneratePdf = require("../utils/CustomergeneratePdf");
 //     // res.status(201).json(savedBill)
 // });
 
+const escapeRegex = (str) => String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 exports.addbillProduct = asyncHandler(async (req, res) => {
     const {
         customerName,
@@ -61,27 +63,36 @@ exports.addbillProduct = asyncHandler(async (req, res) => {
         createdBy: req.user,
     });
 
-    // Automatically decrement stock for matched products in inventory
+    // Concurrently decrement stock for matched products in inventory
     try {
+        const updateOps = [];
         for (const item of items) {
             const qty = Number(item.quantity) || 0;
             if (qty > 0) {
                 if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
-                    await Product.findByIdAndUpdate(item.productId, {
-                        $inc: { currentStock: -qty, totalSold: qty }
-                    });
-                } else if (item.productName) {
-                    await Product.findOneAndUpdate(
-                        {
-                            adminId: req.user,
-                            itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
-                        },
-                        {
+                    updateOps.push(
+                        Product.findByIdAndUpdate(item.productId, {
                             $inc: { currentStock: -qty, totalSold: qty }
-                        }
+                        })
+                    );
+                } else if (item.productName) {
+                    const safeName = escapeRegex(item.productName.trim());
+                    updateOps.push(
+                        Product.findOneAndUpdate(
+                            {
+                                adminId: req.user,
+                                itemName: { $regex: new RegExp(`^${safeName}$`, "i") }
+                            },
+                            {
+                                $inc: { currentStock: -qty, totalSold: qty }
+                            }
+                        )
                     );
                 }
             }
+        }
+        if (updateOps.length > 0) {
+            await Promise.all(updateOps);
         }
     } catch (stockErr) {
         console.error("Stock update error:", stockErr.message);
@@ -92,12 +103,15 @@ exports.addbillProduct = asyncHandler(async (req, res) => {
 
 
 exports.getBillProduct = asyncHandler(async (req, res) => {
-    const bills = await Bills.find({ isDeleted: false, createdBy: req.user }).populate("createdBy");
-    if (bills.length === 0) {
-        return res.status(400).json({ message: "NO Bills found" })
+    const bills = await Bills.find({ isDeleted: false, createdBy: req.user })
+        .populate("createdBy", "name branchName email mobile address")
+        .sort({ createdAt: -1 })
+        .lean();
+    if (!bills || bills.length === 0) {
+        return res.status(200).json({ message: "NO Bills found", bills: [] });
     }
-    res.json({ message: "Bills Fetched Successfully", bills })
-})
+    res.json({ message: "Bills Fetched Successfully", bills });
+});
 
 
 
@@ -228,25 +242,34 @@ exports.deleteBillProduct = asyncHandler(async (req, res) => {
     // Restore stock back to products
     try {
         if (bill.items && bill.items.length > 0) {
+            const restoreOps = [];
             for (const item of bill.items) {
                 const qty = Number(item.quantity) || 0;
                 if (qty > 0) {
                     if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
-                        await Product.findByIdAndUpdate(item.productId, {
-                            $inc: { currentStock: qty, totalSold: -qty }
-                        });
-                    } else if (item.productName) {
-                        await Product.findOneAndUpdate(
-                            {
-                                adminId: req.user,
-                                itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
-                            },
-                            {
+                        restoreOps.push(
+                            Product.findByIdAndUpdate(item.productId, {
                                 $inc: { currentStock: qty, totalSold: -qty }
-                            }
+                            })
+                        );
+                    } else if (item.productName) {
+                        const safeName = escapeRegex(item.productName.trim());
+                        restoreOps.push(
+                            Product.findOneAndUpdate(
+                                {
+                                    adminId: req.user,
+                                    itemName: { $regex: new RegExp(`^${safeName}$`, "i") }
+                                },
+                                {
+                                    $inc: { currentStock: qty, totalSold: -qty }
+                                }
+                            )
                         );
                     }
                 }
+            }
+            if (restoreOps.length > 0) {
+                await Promise.all(restoreOps);
             }
         }
     } catch (stockErr) {
@@ -283,25 +306,34 @@ exports.restoreBillProduct = asyncHandler(async (req, res) => {
     // Re-decrement stock when bill is restored
     try {
         if (bill.items && bill.items.length > 0) {
+            const reDecOps = [];
             for (const item of bill.items) {
                 const qty = Number(item.quantity) || 0;
                 if (qty > 0) {
                     if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
-                        await Product.findByIdAndUpdate(item.productId, {
-                            $inc: { currentStock: -qty, totalSold: qty }
-                        });
-                    } else if (item.productName) {
-                        await Product.findOneAndUpdate(
-                            {
-                                adminId: req.user,
-                                itemName: { $regex: new RegExp(`^${item.productName.trim()}$`, "i") }
-                            },
-                            {
+                        reDecOps.push(
+                            Product.findByIdAndUpdate(item.productId, {
                                 $inc: { currentStock: -qty, totalSold: qty }
-                            }
+                            })
+                        );
+                    } else if (item.productName) {
+                        const safeName = escapeRegex(item.productName.trim());
+                        reDecOps.push(
+                            Product.findOneAndUpdate(
+                                {
+                                    adminId: req.user,
+                                    itemName: { $regex: new RegExp(`^${safeName}$`, "i") }
+                                },
+                                {
+                                    $inc: { currentStock: -qty, totalSold: qty }
+                                }
+                            )
                         );
                     }
                 }
+            }
+            if (reDecOps.length > 0) {
+                await Promise.all(reDecOps);
             }
         }
     } catch (stockErr) {
@@ -312,26 +344,35 @@ exports.restoreBillProduct = asyncHandler(async (req, res) => {
 });
 
 exports.getDeleteBillProducts = asyncHandler(async (req, res) => {
-    const { start, limit } = req.query
+    const { start, limit } = req.query;
 
-    const total = await Bills.countDocuments({ isDeleted: true, createdBy: req.user })
-    const bills = await Bills.find({ isDeleted: true, createdBy: req.user, })
-        .populate("createdBy", "name email")
+    const total = await Bills.countDocuments({ isDeleted: true, createdBy: req.user });
+    const bills = await Bills.find({ isDeleted: true, createdBy: req.user })
+        .populate("createdBy", "name email branchName mobile")
         .skip(start)
-        .limit(limit)
+        .limit(limit);
     res.json({ message: "DeleteBill Fetch Successfully", bills, total });
-})
+});
 
 
 exports.downloadBillProductPdf = asyncHandler(async (req, res) => {
-
-    const bill = await Bills.findById(req.params.id).populate("createdBy").lean();
-    if (!bill) {
-        return res.status(400).json({ message: "customer Bill Not Found" })
+    const { id } = req.params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid Bill ID" });
     }
-    console.log("billdata", bill)
-    await CustomergeneratePdf(bill, res)
-})
+
+    const bill = await Bills.findOne({
+        _id: id,
+        createdBy: req.user,
+        isDeleted: false,
+    }).populate("createdBy", "name branchName mobile address email").lean();
+
+    if (!bill) {
+        return res.status(404).json({ message: "Customer Bill Not Found" });
+    }
+
+    await CustomergeneratePdf(bill, res);
+});
 
 
 
@@ -426,72 +467,72 @@ exports.getDashboardTotals = asyncHandler(async (req, res) => {
     // Helper function to get last day of month
     const getLastDayOfMonth = (y, m) => new Date(y, m, 0); // month 1-indexed
 
-    // Overall Total Income
-    const overall = await Bills.aggregate([
-        { $match: { isDeleted: false, createdBy: userId } },
-        { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
-    ]);
-
-    // Yearly Total
-    const yearly = await Bills.aggregate([
-        {
-            $match: {
-                isDeleted: false,
-                createdBy: userId,
-                date: {
-                    $gte: new Date(`${year}-01-01T00:00:00.000Z`),
-                    $lte: new Date(`${year}-12-31T23:59:59.999Z`)
-                }
-            }
-        },
-        { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
-    ]);
-
-    // Monthly Total
     const monthStart = new Date(`${year}-${month}-01T00:00:00.000Z`);
     const monthEnd = getLastDayOfMonth(year, month);
     monthEnd.setHours(23, 59, 59, 999);
 
-    const monthly = await Bills.aggregate([
-        {
-            $match: {
-                isDeleted: false,
-                createdBy: userId,
-                date: {
-                    $gte: monthStart,
-                    $lte: monthEnd
-                }
-            }
-        },
-        { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
-    ]);
-
-    // Daily Total
     const dayStart = new Date(year, month - 1, day, 0, 0, 0, 0); // month 0-indexed
     const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
 
-    const daily = await Bills.aggregate([
-        {
-            $match: {
-                isDeleted: false,
-                createdBy: userId,
-                date: {
-                    $gte: dayStart,
-                    $lte: dayEnd
+    // Execute all 6 queries concurrently via Promise.all
+    const [
+        overall,
+        yearly,
+        monthly,
+        daily,
+        totalBills,
+        recentBills
+    ] = await Promise.all([
+        Bills.aggregate([
+            { $match: { isDeleted: false, createdBy: userId } },
+            { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+        ]),
+        Bills.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    createdBy: userId,
+                    date: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lte: new Date(`${year}-12-31T23:59:59.999Z`)
+                    }
                 }
-            }
-        },
-        { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+            },
+            { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+        ]),
+        Bills.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    createdBy: userId,
+                    date: {
+                        $gte: monthStart,
+                        $lte: monthEnd
+                    }
+                }
+            },
+            { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+        ]),
+        Bills.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    createdBy: userId,
+                    date: {
+                        $gte: dayStart,
+                        $lte: dayEnd
+                    }
+                }
+            },
+            { $group: { _id: null, totalIncome: { $sum: "$totalAmount" } } }
+        ]),
+        Bills.countDocuments({ isDeleted: false, createdBy: userId }),
+        Bills.find({ isDeleted: false, createdBy: userId })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select("customerName customerPhone totalAmount paymentMethod date")
+            .lean()
     ]);
-
-    // Total Bills Count
-    const totalBills = await Bills.countDocuments({ isDeleted: false, createdBy: userId });
-
-    // Recent Bills (latest 5)
-    const recentBills = await Bills.find({ isDeleted: false, createdBy: userId })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select("customerName customerPhone totalAmount paymentMethod date");
 
     res.json({
         overall: overall[0]?.totalIncome || 0,

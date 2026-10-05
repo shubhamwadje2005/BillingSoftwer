@@ -16,12 +16,19 @@ const ViewBill = () => {
 
     const bill = data.bills.find(b => b._id === id);
     if (!bill) return <p className="text-center mt-10 text-gray-500">No Bill Found</p>;
-    console.log(bill)
 
     const handleDownloadPDF = async (billId) => {
         try {
+            const isLocal = typeof window !== "undefined" && (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1" ||
+                window.location.port === "5173" ||
+                window.location.hostname.startsWith("192.168.")
+            );
+            const BASE = isLocal ? "http://localhost:5000" : (import.meta.env.VITE_BACKEND_URL || "https://billing-softwer-server.vercel.app");
+
             const response = await axios.get(
-                `https://billing-softwer-server.vercel.app/api/bills/bill/downloadbill/${billId}`,
+                `${BASE}/api/bills/bill/downloadbill/${billId}`,
                 {
                     responseType: "blob",
                     withCredentials: true,

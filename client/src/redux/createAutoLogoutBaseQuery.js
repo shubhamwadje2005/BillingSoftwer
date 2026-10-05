@@ -12,7 +12,7 @@ export const createAutoLogoutBaseQuery = ({ baseUrl, redirectPath }) => {
             const message = result.error.data?.message || "Session expired. Please login again."
             toast.error(message)
 
-            setInterval(() => {
+            setTimeout(() => {
                 localStorage.clear()
                 window.location.replace(redirectPath)
             }, 4000)

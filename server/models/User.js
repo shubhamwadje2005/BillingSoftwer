@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
-module.exports = mongoose.model("user", new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     branchName: { type: String, required: true },
     name: { type: String, required: true },
     address: { type: String, required: true },
@@ -9,4 +9,10 @@ module.exports = mongoose.model("user", new mongoose.Schema({
     password: { type: String, required: true },
     shopImages: { type: [String], required: true },
     inActive: { type: Boolean, default: true },
-}, { timestamps: true }))
+}, { timestamps: true });
+
+// Performance & uniqueness indexes
+userSchema.index({ email: 1 });
+userSchema.index({ mobile: 1 });
+
+module.exports = mongoose.model("user", userSchema);
