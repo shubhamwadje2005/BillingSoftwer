@@ -8,25 +8,12 @@ const { sendEmail, verifyEmailConnection } = require("../utils/email")
 const getEmailTemplate = require("../utils/getEmailTemplate")
 
 exports.checkEmailConfig = asyncHandler(async (req, res) => {
-    const hasEmail = Boolean(process.env.EMAIL);
-    const hasPass = Boolean(process.env.PASS);
-
-    if (!hasEmail || !hasPass) {
-        return res.status(500).json({
-            success: false,
-            message: "EMAIL or PASS environment variable is MISSING on server (Vercel)!",
-            hasEmail,
-            hasPass,
-            tip: "Please go to Vercel Dashboard -> Project Settings -> Environment Variables and add EMAIL and PASS."
-        });
-    }
-
     try {
         await verifyEmailConnection();
         return res.status(200).json({
             success: true,
             message: "SMTP verified successfully! Email can be sent from the server.",
-            user: `${process.env.EMAIL.slice(0, 4)}***@gmail.com`
+            user: `${(process.env.EMAIL || "shubhamwadje2005@gmail.com").slice(0, 4)}***@gmail.com`
         });
     } catch (err) {
         return res.status(500).json({
