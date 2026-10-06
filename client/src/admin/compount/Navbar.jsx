@@ -13,11 +13,14 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { useUserLogoutMutation } from "../../redux/api/auth.api";
+import { useUserLogoutMutation, useUsergetprofileQuery } from "../../redux/api/auth.api";
 
 const SecretaryDashboard = () => {
 
     const { user } = useSelector(state => state.auth)
+    const { data: profileData } = useUsergetprofileQuery()
+    const currentUser = profileData?.user || user?.result || user;
+
     const navigate = useNavigate()
     const [UserLogout, { isSuccess }] = useUserLogoutMutation()
 
@@ -99,16 +102,41 @@ const SecretaryDashboard = () => {
                 `}
             >
                 <div className={`flex items-center justify-center lg:justify-start gap-3 p-4 border-b border-slate-700 ${!open && "lg:justify-center"}`}>
-                    <img
-                        src={user?.result?.shopImages || "/default-user.png"}
-                        alt="Profile"
-                        className="w-12 h-12 rounded-full object-cover object-top border-2 border-white flex-shrink-0"
-                    />
-                    <div className={`overflow-hidden transition-all duration-300 ${open ? "w-auto opacity-100" : "w-0 opacity-0"}`}>
-                        <h1 className="text-lg font-semibold whitespace-nowrap">
-                            {user?.result?.branchName || "No Name"}
-                        </h1>
-                    </div>
+                    {(() => {
+                        const shopImage = Array.isArray(currentUser?.shopImages)
+                            ? currentUser.shopImages[0]
+                            : (currentUser?.shopImages || currentUser?.profileImage || null);
+                        const branchName = currentUser?.branchName || currentUser?.name || "Maitari Mens Wear";
+                        const initialLetter = (branchName[0] || "M").toUpperCase();
+
+                        return (
+                            <>
+                                {shopImage ? (
+                                    <img
+                                        src={shopImage}
+                                        alt={branchName}
+                                        className="w-12 h-12 rounded-full object-cover object-top border-2 border-white flex-shrink-0"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
+                                            if (fallback) fallback.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div
+                                    style={{ display: shopImage ? 'none' : 'flex' }}
+                                    className="avatar-fallback w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-900 font-black text-xl items-center justify-center border-2 border-white flex-shrink-0 shadow-md uppercase"
+                                >
+                                    {initialLetter}
+                                </div>
+                                <div className={`overflow-hidden transition-all duration-300 ${open ? "w-auto opacity-100" : "w-0 opacity-0"}`}>
+                                    <h1 className="text-lg font-semibold whitespace-nowrap capitalize">
+                                        {branchName}
+                                    </h1>
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 <nav className="px-2 my-5 space-y-2 overflow-y-auto scrollbar-hide flex-1">
