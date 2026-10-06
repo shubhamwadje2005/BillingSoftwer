@@ -32,7 +32,10 @@ exports.checkEmailConfig = asyncHandler(async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "SMTP connection failed: " + (err.message || err),
-            error: err.message
+            error: err.message,
+            emailConfigured: process.env.EMAIL,
+            passLength: process.env.PASS ? process.env.PASS.length : 0,
+            passPreview: process.env.PASS ? `${process.env.PASS.slice(0, 2)}***${process.env.PASS.slice(-2)}` : "empty"
         });
     }
 });
