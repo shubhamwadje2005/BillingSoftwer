@@ -1,6 +1,5 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query"
 import { toast } from "react-toastify"
-import { logout } from "./slice/auth.slice"
 
 let isLoggingOut = false;
 
@@ -45,7 +44,11 @@ export const createAutoLogoutBaseQuery = ({ baseUrl, redirectPath = "/login" }) 
             if (!isAuthRoute) {
                 if (!isLoggingOut) {
                     isLoggingOut = true;
-                    api.dispatch(logout());
+                    try {
+                        localStorage.removeItem("user");
+                        localStorage.removeItem("token");
+                        api.dispatch({ type: "authSlice/logout" });
+                    } catch (e) {}
 
                     const message = result.error.data?.message || "Session expired. Please login again.";
                     toast.error(message);
