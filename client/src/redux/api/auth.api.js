@@ -37,6 +37,9 @@ export const authApi = createApi({
                         body: userData
                     }
                 },
+                transformResponse: data => {
+                    return data?.result || data;
+                },
                 invalidatesTags: ["auth"]
             }),
 
@@ -49,6 +52,7 @@ export const authApi = createApi({
                 },
                 transformResponse: data => {
                     localStorage.removeItem("user");
+                    localStorage.removeItem("token");
                     return data?.result || data;
                 },
                 invalidatesTags: ["auth"]

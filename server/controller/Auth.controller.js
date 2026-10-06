@@ -143,17 +143,19 @@ exports.loginUser = asyncHandler(async (req, res) => {
     if (!verify) {
         return res.status(401).json({ message: "Invalid Password !" });
     }
-    const token = jwt.sign({ _id: result._id, name: result.name }, process.env.JWT_KEY);
+    const token = jwt.sign({ _id: result._id, name: result.name }, process.env.JWT_KEY, { expiresIn: "7d" });
 
     const isProduction = process.env.NODE_ENV === "production";
     res.cookie("USER", token, {
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax"
     });
     res.json({
-        message: "User Login Success", result: {
+        message: "User Login Success",
+        token,
+        result: {
             _id: result._id,
             name: result.name,
             email: result.email,
@@ -161,6 +163,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
             address: result.address,
             mobile: result.mobile,
             shopImages: result.shopImages,
+            token
         }
     });
 });

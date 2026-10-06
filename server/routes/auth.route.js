@@ -35,8 +35,8 @@ const authRateLimiter = (max = 15, windowMs = 15 * 60 * 1000) => (req, res, next
 };
 
 router
-    .post("/register", authRateLimiter(10), auth.registeruser)
-    .post("/login", authRateLimiter(20), auth.loginUser)
+    .post("/register", authRateLimiter(50), auth.registeruser)
+    .post("/login", authRateLimiter(100), auth.loginUser)
     .post("/logout", auth.logoutUser)
     .get("/check-email-config", auth.checkEmailConfig)
 

@@ -566,14 +566,14 @@ const Login = () => {
             email: yup.string().required(),
             password: yup.string().required(),
         }),
-        onSubmit: (values, { resetForm }) => {
+        onSubmit: (values) => {
             signin(values)
-            resetForm()
         }
     })
 
     useEffect(() => {
         if (isSuccess) {
+            formik.resetForm()
             navigate("/")
             toast.success("User Login Successfully")
         }
