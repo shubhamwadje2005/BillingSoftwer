@@ -11,7 +11,7 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [select, setSelect] = useState()
     const navigate = useNavigate()
-    const [signup, { isLoading, isSuccess, isError, error }] = useUserRegisterMutation()
+    const [signup, { data, isLoading, isSuccess, isError, error }] = useUserRegisterMutation()
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -51,10 +51,14 @@ const Register = () => {
     useEffect(() => {
         if (isSuccess) {
             formik.resetForm()
+            if (data?.emailSent === false) {
+                toast.warning(`Account created! Email failed: your password is: ${data?.credentials?.password}`, { autoClose: 12000 })
+            } else {
+                toast.success(data?.message || "User Register Success! Password sent to email.")
+            }
             navigate("/login")
-            toast.success("User Register Success")
         }
-    }, [isSuccess])
+    }, [isSuccess, data])
 
     useEffect(() => {
         if (isError) {

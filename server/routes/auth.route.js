@@ -38,6 +38,7 @@ router
     .post("/register", authRateLimiter(10), auth.registeruser)
     .post("/login", authRateLimiter(20), auth.loginUser)
     .post("/logout", auth.logoutUser)
+    .get("/check-email-config", auth.checkEmailConfig)
 
     .get("/get", authmiddleware, auth.getProfileUser)
     .patch("/profile-update", authmiddleware, auth.updateProfileUser)

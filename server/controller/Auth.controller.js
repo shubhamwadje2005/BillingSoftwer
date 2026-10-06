@@ -4,10 +4,38 @@ const { userPhotoUpload } = require("../utils/uploader")
 const User = require("../models/User")
 const cloud = require("../utils/cloudinary")
 const bcrypt = require("bcryptjs")
-const { sendEmail } = require("../utils/email")
-const getEmailTemplate = require("../utils/getEmailTemplate ")
+const { sendEmail, verifyEmailConnection } = require("../utils/email")
+const getEmailTemplate = require("../utils/getEmailTemplate")
 
+exports.checkEmailConfig = asyncHandler(async (req, res) => {
+    const hasEmail = Boolean(process.env.EMAIL);
+    const hasPass = Boolean(process.env.PASS);
 
+    if (!hasEmail || !hasPass) {
+        return res.status(500).json({
+            success: false,
+            message: "EMAIL or PASS environment variable is MISSING on server (Vercel)!",
+            hasEmail,
+            hasPass,
+            tip: "Please go to Vercel Dashboard -> Project Settings -> Environment Variables and add EMAIL and PASS."
+        });
+    }
+
+    try {
+        await verifyEmailConnection();
+        return res.status(200).json({
+            success: true,
+            message: "SMTP verified successfully! Email can be sent from the server.",
+            user: `${process.env.EMAIL.slice(0, 4)}***@gmail.com`
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "SMTP connection failed: " + (err.message || err),
+            error: err.message
+        });
+    }
+});
 
 exports.registeruser = asyncHandler(async (req, res) => {
     userPhotoUpload(req, res, async err => {
@@ -57,6 +85,8 @@ exports.registeruser = asyncHandler(async (req, res) => {
                 shopImages: [uploaded.secure_url]
             })
 
+            let emailSent = false
+            let emailErrorMsg = null
             try {
                 const emailTemplate = getEmailTemplate({
                     name,
@@ -71,12 +101,18 @@ exports.registeruser = asyncHandler(async (req, res) => {
                     text: emailTemplate.text,
                     html: emailTemplate.html
                 })
+                emailSent = true
             } catch (emailErr) {
-                console.error("Email send failed:", emailErr.message || emailErr)
+                emailErrorMsg = emailErr.message || String(emailErr)
+                console.error("Email send failed:", emailErrorMsg)
             }
 
             return res.status(201).json({
-                message: "User Register Success",
+                message: emailSent
+                    ? "User Register Success. Login credentials sent to your email."
+                    : "User Register Success. Warning: Email could not be delivered.",
+                emailSent,
+                emailError: emailErrorMsg,
                 credentials: {
                     email,
                     password
@@ -88,6 +124,7 @@ exports.registeruser = asyncHandler(async (req, res) => {
         }
     })
 })
+
 
 
 exports.loginUser = asyncHandler(async (req, res) => {
